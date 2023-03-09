@@ -70,14 +70,19 @@ type authReqModel struct {
 }
 
 type createReqModel struct {
-	Parent     *pageParent `json:"parent"`
-	Title      string      `json:"title"`
-	Properties *properties `json:"properties"`
+	Parent *pageParent `json:"parent"`
+	Title  string      `json:"title"`
+}
+
+type createBodyModel struct {
+	Properties *properties  `json:"properties"`
+	Parent     *pageParent  `json:"parent"`
+	Title      []updateText `json:"title"`
 }
 
 type createResModel struct {
-	DatabaseID string `json:"id"`
-	parent     parent `json:"parent"`
+	DatabaseID string      `json:"id"`
+	Parent     *pageParent `json:"parent"`
 }
 
 type errorModel struct {

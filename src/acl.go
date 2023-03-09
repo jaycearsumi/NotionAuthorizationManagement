@@ -48,7 +48,7 @@ func (am *aclManager) aclCreate() gin.HandlerFunc {
 		} else {
 			am.databaseID = res.DatabaseID
 			am.api.databaseID = res.DatabaseID
-			am.parentID = res.parent.id()
+			am.parentID = res.Parent.PageID
 			c.JSON(http.StatusOK, gin.H{
 				"res": res,
 			})

@@ -30,7 +30,7 @@ func (api *aclAPI) retrieveDatabase(params *initReqModel) (*initResModel, error)
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model initResModel
@@ -46,9 +46,23 @@ func (api *aclAPI) retrieveDatabase(params *initReqModel) (*initResModel, error)
 func (api *aclAPI) createDatabase(params *createReqModel) (*createResModel, error) {
 	url := "https://api.notion.com/v1/databases"
 
-	params.Properties = &properties{}
+	bodyParams := &createBodyModel{
+		Properties: &properties{
+			ResourceID: &title{Title: &property{}},
+			UserID:     &text{RichText: &property{}},
+			Access:     &text{RichText: &property{}},
+		},
+		Parent: params.Parent,
+		Title: []updateText{
+			{
+				Text: &plainText{
+					Content: params.Title,
+				},
+			},
+		},
+	}
 
-	p, _ := json.Marshal(params)
+	p, _ := json.Marshal(bodyParams)
 	log.Println(string(p))
 
 	payload := strings.NewReader(string(p))
@@ -64,7 +78,7 @@ func (api *aclAPI) createDatabase(params *createReqModel) (*createResModel, erro
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model createResModel
@@ -101,7 +115,7 @@ func (api *aclAPI) checkAccess(params *checkReqModel) (*checkResModel, error) {
 
 	tmp, _ := json.Marshal(bodyParams)
 
-	log.Println(string(tmp))
+	//log.Println(string(tmp))
 
 	payload := strings.NewReader(string(tmp))
 
@@ -118,7 +132,7 @@ func (api *aclAPI) checkAccess(params *checkReqModel) (*checkResModel, error) {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model checkResModel
@@ -199,7 +213,7 @@ func (api *aclAPI) grantAccess(bodyParams *updateReqModel, checkParams *checkReq
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model updateResModel
@@ -244,7 +258,7 @@ func (api *aclAPI) changeAccess(bodyParams *updateReqModel, checkRes *checkResMo
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model updateResModel
@@ -264,7 +278,7 @@ func (api *aclAPI) revokeAccess(checkParams *checkReqModel) (*revokeResModel, er
 		return resModel, err
 	}
 	url := "https://api.notion.com/v1/blocks/" + checkRes.Results[0].PageID
-	req, _ := http.NewRequest("PATCH", url, nil)
+	req, _ := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Notion-Version", "2022-06-28")
 	req.Header.Add("Authorization", "Bearer "+api.auth)
@@ -273,7 +287,7 @@ func (api *aclAPI) revokeAccess(checkParams *checkReqModel) (*revokeResModel, er
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var error errorModel
 	if strings.Contains(string(body), "error") {
