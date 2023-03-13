@@ -64,14 +64,14 @@ func (api *rbac3API) rbac3CheckAccess(params *checkReqModel) (*checkResModel, er
 	if roleErr != nil {
 		return resModel, roleErr
 	}
-	accessRes, accessErr := api.checkRoleAccess(roleRes)
+	accessRes, accessErr := api.checkRoleAccess(roleRes, params)
 	if accessErr != nil {
 		return resModel, accessErr
 	}
 	return accessRes, nil
 }
 
-func (api *rbac3API) checkUserRole(params *checkReqModel) (*checkResModel, error) {
+func (api *rbac3API) checkUserRole(params *checkReqModel) (*checkRoleResModel, error) {
 	url := "https://api.notion.com/v1/databases/" + api.userRoleDatabaseID + "/query"
 
 	bodyParams := &checkBody{
@@ -81,6 +81,60 @@ func (api *rbac3API) checkUserRole(params *checkReqModel) (*checkResModel, error
 					Property: "User ID",
 					RichText: &textContains{
 						Contains: params.UserID,
+					},
+				},
+			},
+		},
+	}
+
+	tmp, _ := json.Marshal(bodyParams)
+
+	//log.Println(string(tmp))
+
+	payload := strings.NewReader(string(tmp))
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Authorization", "Bearer "+api.auth)
+	req.Header.Add("content-type", "application/json")
+
+	res, _ := http.DefaultClient.Do(req)
+	//log.Println(error.Error())
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	//log.Println(string(body))
+
+	var err errorModel
+	var model checkRoleResModel
+	if strings.Contains(string(body), "error") {
+		json.Unmarshal(body, &err)
+		return &model, &err
+	} else {
+		json.Unmarshal(body, &model)
+		return &model, nil
+	}
+}
+
+func (api *rbac3API) checkRoleAccess(roleRes *checkRoleResModel, params *checkReqModel) (*checkResModel, error) {
+	url := "https://api.notion.com/v1/databases/" + api.RoleAccessDatabaseID + "/query"
+
+	bodyParams := &checkBody{
+		Filter: &filter{
+			And: []condition{
+				{
+					Property: "Role",
+					RichText: &textContains{
+						Contains: roleRes.Results[0].Properties.Role.TextArr[0].Text.Content,
+					},
+				},
+				{
+					Property: "Resource ID",
+					RichText: &textContains{
+						Contains: params.ResourceID,
 					},
 				},
 			},

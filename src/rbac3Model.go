@@ -17,7 +17,7 @@ type childDatabase struct {
 	Title string `json:"title"`
 }
 
-type checkRoleRes struct {
+type checkRoleResModel struct {
 	Results []roleResult `json:"results"`
 }
 
@@ -31,4 +31,5 @@ type checkRoleProperty struct {
 }
 
 type role struct {
+	TextArr []richText `json:"rich_text"`
 }
