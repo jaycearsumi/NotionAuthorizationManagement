@@ -11,15 +11,17 @@ func main() {
 }
 
 type rootManager struct {
-	auth string
-	am   *aclManager
-	r    *gin.Engine
+	auth         string
+	am           *aclManager
+	r            *gin.Engine
+	rbac3Manager *rbac3Manager
 }
 
 func createRootManager() *rootManager {
 	return &rootManager{
-		am: createACLManager(),
-		r:  gin.Default(),
+		am:           createACLManager(),
+		r:            gin.Default(),
+		rbac3Manager: createRbac3Manager(),
 	}
 }
 
@@ -36,6 +38,7 @@ func (rm *rootManager) useMiddleware() {
 		c.ShouldBind(&params)
 		rm.auth = params.Token
 		rm.am.api.auth = params.Token
+		rm.rbac3Manager.api.auth = params.Token
 		c.String(http.StatusOK, "OK")
 	})
 }
@@ -58,5 +61,15 @@ func (rm *rootManager) aclRegister() {
 }
 
 func (rm *rootManager) rbac3Register() {
-
+	rbac3Group := rm.r.Group("rbac3")
+	rbac3Group.Use(func(c *gin.Context) {
+		if rm.auth == "" {
+			c.String(http.StatusForbidden, "need auth token")
+			c.Abort()
+		} else {
+			c.Next()
+		}
+	})
+	rbac3Group.POST("/init", rm.rbac3Manager.rbac3Init())
+	rbac3Group.GET("/:rid/:uid", rm.rbac3Manager.rbac3Check())
 }
