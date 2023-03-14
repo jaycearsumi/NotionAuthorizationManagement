@@ -31,5 +31,29 @@ type checkRoleProperty struct {
 }
 
 type role struct {
-	TextArr []richText `json:"rich_text"`
+	RoleArr []multiSelect `json:"multi_select"`
+}
+
+type multiSelect struct {
+	Name string `json:"name"`
+}
+
+type rbac3UpdateRoleReqModel struct {
+	UserID string `json:"user_id"`
+	Role   string `json:"role"`
+}
+
+type rbac3CheckRoleResModel struct {
+	Properties *roleProperty `json:"properties"`
+}
+
+type roleProperty struct {
+	Role *role `json:"Role"`
+}
+
+type roleUpdateBodyModel struct {
+	Properties *roleProperty `json:"properties"`
+}
+
+type rbac3UpdateRoleResModel struct {
 }

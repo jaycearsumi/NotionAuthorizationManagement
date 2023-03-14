@@ -54,3 +54,63 @@ func (rm *rbac3Manager) rbac3Check() gin.HandlerFunc {
 		}
 	}
 }
+
+func (rm *rbac3Manager) rbac3UpdateRole() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params rbac3UpdateRoleReqModel
+		c.ShouldBind(&params)
+		res, err := rm.api.updateRole(&params)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"res": res,
+			})
+		}
+	}
+}
+
+func (rm *rbac3Manager) rbac3RevokeRole() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params rbac3InitReqModel
+		c.ShouldBind(&params)
+		res, err := rm.api.homePageInit(&params)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"res": res,
+			})
+		}
+	}
+}
+
+func (rm *rbac3Manager) rbac3UpdateAccess() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params rbac3InitReqModel
+		c.ShouldBind(&params)
+		res, err := rm.api.homePageInit(&params)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"res": res,
+			})
+		}
+	}
+}
+
+func (rm *rbac3Manager) rbac3RevokeAccess() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params rbac3InitReqModel
+		c.ShouldBind(&params)
+		res, err := rm.api.homePageInit(&params)
+		if err != nil {
+			c.String(http.StatusNotFound, err.Error())
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"res": res,
+			})
+		}
+	}
+}

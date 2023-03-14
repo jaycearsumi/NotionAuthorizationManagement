@@ -32,7 +32,7 @@ func (api *rbac3API) homePageInit(params *rbac3InitReqModel) (*rbac3InitResModel
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var err errorModel
 	var model rbac3InitResModel
@@ -128,7 +128,7 @@ func (api *rbac3API) checkRoleAccess(roleRes *checkRoleResModel, params *checkRe
 				{
 					Property: "Role",
 					RichText: &textContains{
-						Contains: roleRes.Results[0].Properties.Role.TextArr[0].Text.Content,
+						Contains: roleRes.Results[0].Properties.Role.RoleArr[0].Name,
 					},
 				},
 				{
@@ -166,6 +166,82 @@ func (api *rbac3API) checkRoleAccess(roleRes *checkRoleResModel, params *checkRe
 	var model checkResModel
 	if strings.Contains(string(body), "error") {
 		json.Unmarshal(body, &err)
+		return &model, &err
+	} else {
+		json.Unmarshal(body, &model)
+		return &model, nil
+	}
+}
+
+func (api *rbac3API) updateRole(params *rbac3UpdateRoleReqModel) (*rbac3UpdateRoleResModel, error) {
+	checkRes, checkErr := api.checkUserRole(&checkReqModel{UserID: params.UserID})
+	if checkErr != nil {
+		return nil, checkErr
+	}
+	url := "https://api.notion.com/v1/pages/" + checkRes.Results[0].PageID
+
+	reqParams := &roleUpdateBodyModel{
+		Properties: &roleProperty{
+			Role: &role{
+				RoleArr: []multiSelect{
+					{
+						Name: params.Role,
+					},
+				},
+			},
+		},
+	}
+	for _, obj := range checkRes.Results[0].Properties.Role.RoleArr {
+		reqParams.Properties.Role.RoleArr = append(reqParams.Properties.Role.RoleArr, multiSelect{Name: obj.Name})
+	}
+
+	p, _ := json.Marshal(reqParams)
+
+	payload := strings.NewReader(string(p))
+
+	req, _ := http.NewRequest("PATCH", url, payload)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Authorization", "Bearer "+api.auth)
+	req.Header.Add("content-type", "application/json")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	log.Println(string(body))
+
+	var err errorModel
+	var model rbac3UpdateRoleResModel
+	if strings.Contains(string(body), "error") {
+		json.Unmarshal(body, &err)
+		return &model, &err
+	} else {
+		json.Unmarshal(body, &model)
+		return &model, nil
+	}
+}
+
+func (api *rbac3API) checkRole() (*rbac3CheckRoleResModel, error) {
+	url := "https://api.notion.com/v1/databases/" + api.userRoleDatabaseID
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Authorization", "Bearer "+api.auth)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	//log.Println(string(body))
+
+	var err errorModel
+	var model rbac3CheckRoleResModel
+	if strings.Contains(string(body), "error") {
+		json.Unmarshal(body, err)
 		return &model, &err
 	} else {
 		json.Unmarshal(body, &model)
