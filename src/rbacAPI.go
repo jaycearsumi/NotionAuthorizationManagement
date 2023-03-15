@@ -348,7 +348,7 @@ func (api *rbac3API) updateAccess(params *rbac3UpdateAccessReqModel) (*rbac3Upda
 }
 
 func (api *rbac3API) retrieveRoleAccess(params *rbac3UpdateAccessReqModel) (*checkResModel, error) {
-	url := "https://api.notion.com/v1/databases/" + api.userRoleDatabaseID + "/query"
+	url := "https://api.notion.com/v1/databases/" + api.RoleAccessDatabaseID + "/query"
 
 	bodyParams := &checkBody{
 		Filter: &filter{
