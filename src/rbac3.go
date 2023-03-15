@@ -112,9 +112,11 @@ func (rm *rbac3Manager) rbac3UpdateAccess() gin.HandlerFunc {
 
 func (rm *rbac3Manager) rbac3RevokeAccess() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var params rbac3InitReqModel
-		c.ShouldBind(&params)
-		res, err := rm.api.homePageInit(&params)
+		params := &rbac3UpdateAccessReqModel{
+			ResourceID: c.Param("rid"),
+			Role:       c.Param("role"),
+		}
+		res, err := rm.api.revokeAccess(params)
 		if err != nil {
 			c.String(http.StatusNotFound, err.Error())
 		} else {

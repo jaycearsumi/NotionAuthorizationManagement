@@ -400,3 +400,33 @@ func (api *rbac3API) retrieveRoleAccess(params *rbac3UpdateAccessReqModel) (*che
 		return &model, nil
 	}
 }
+
+func (api *rbac3API) revokeAccess(params *rbac3UpdateAccessReqModel) (*rbac3UpdateAccessResModel, error) {
+	checkRes, checkErr := api.retrieveRoleAccess(params)
+	if checkErr != nil {
+		return nil, checkErr
+	}
+	url := "https://api.notion.com/v1/blocks/" + checkRes.Results[0].PageID
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Authorization", "Bearer "+api.auth)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	log.Println(string(body))
+
+	var err errorModel
+	var model rbac3UpdateAccessResModel
+	if strings.Contains(string(body), "error") {
+		json.Unmarshal(body, &err)
+		return nil, &err
+	} else {
+		json.Unmarshal(body, &model)
+		return &model, nil
+	}
+}
