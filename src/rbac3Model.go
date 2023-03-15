@@ -67,3 +67,6 @@ type rbac3UpdateAccessReqModel struct {
 type accessUpdateBodyModel struct {
 	Properties *changeProperties `json:"properties"`
 }
+
+type rbac3UpdateAccessResModel struct {
+}

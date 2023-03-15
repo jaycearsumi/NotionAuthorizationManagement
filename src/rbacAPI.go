@@ -299,24 +299,24 @@ func (api *rbac3API) revokeRole(params *rbac3UpdateRoleReqModel) (*rbac3UpdateRo
 }
 
 func (api *rbac3API) updateAccess(params *rbac3UpdateAccessReqModel) (*rbac3UpdateAccessResModel, error) {
-	checkRes, checkErr := api.checkUserRole(&checkReqModel{UserID: params.UserID})
+	checkRes, checkErr := api.retrieveRoleAccess(params)
 	if checkErr != nil {
 		return nil, checkErr
 	}
 	url := "https://api.notion.com/v1/pages/" + checkRes.Results[0].PageID
 
-	reqParams := &roleUpdateBodyModel{
-		Properties: &roleProperty{
-			Role: &role{
-				RoleArr: []multiSelect{},
+	reqParams := &accessUpdateBodyModel{
+		Properties: &changeProperties{
+			Access: &textCol{
+				TextArr: []updateText{
+					{
+						Text: &plainText{
+							Content: params.Access,
+						},
+					},
+				},
 			},
 		},
-	}
-	for _, obj := range checkRes.Results[0].Properties.Role.RoleArr {
-		if obj.Name == params.Role {
-			continue
-		}
-		reqParams.Properties.Role.RoleArr = append(reqParams.Properties.Role.RoleArr, multiSelect{Name: obj.Name})
 	}
 
 	p, _ := json.Marshal(reqParams)
@@ -337,7 +337,61 @@ func (api *rbac3API) updateAccess(params *rbac3UpdateAccessReqModel) (*rbac3Upda
 	log.Println(string(body))
 
 	var err errorModel
-	var model rbac3UpdateRoleResModel
+	var model rbac3UpdateAccessResModel
+	if strings.Contains(string(body), "error") {
+		json.Unmarshal(body, &err)
+		return nil, &err
+	} else {
+		json.Unmarshal(body, &model)
+		return &model, nil
+	}
+}
+
+func (api *rbac3API) retrieveRoleAccess(params *rbac3UpdateAccessReqModel) (*checkResModel, error) {
+	url := "https://api.notion.com/v1/databases/" + api.userRoleDatabaseID + "/query"
+
+	bodyParams := &checkBody{
+		Filter: &filter{
+			And: []condition{
+				{
+					Property: "Resource ID",
+					RichText: &textContains{
+						Contains: params.ResourceID,
+					},
+				},
+				{
+					Property: "Role",
+					RichText: &textContains{
+						Contains: params.Role,
+					},
+				},
+			},
+		},
+	}
+
+	tmp, _ := json.Marshal(bodyParams)
+
+	//log.Println(string(tmp))
+
+	payload := strings.NewReader(string(tmp))
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Authorization", "Bearer "+api.auth)
+	req.Header.Add("content-type", "application/json")
+
+	res, _ := http.DefaultClient.Do(req)
+	//log.Println(error.Error())
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	//log.Println(string(body))
+
+	var err errorModel
+	var model checkResModel
 	if strings.Contains(string(body), "error") {
 		json.Unmarshal(body, &err)
 		return &model, &err
