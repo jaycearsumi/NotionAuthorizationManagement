@@ -72,8 +72,8 @@ func (rm *rootManager) rbac3Register() {
 	})
 	rbac3Group.POST("/init", rm.rbac3Manager.rbac3Init())
 	rbac3Group.GET("/:rid/:uid", rm.rbac3Manager.rbac3Check())
-	rbac3Group.PATCH("/role", rm.rbac3Manager.rbac3UpdateRole())
-	rbac3Group.DELETE("/role", rm.rbac3Manager.rbac3RevokeRole())
-	rbac3Group.PATCH("/access", rm.rbac3Manager.rbac3UpdateAccess())
-	rbac3Group.DELETE("/access", rm.rbac3Manager.rbac3RevokeAccess())
+	rbac3Group.PATCH("/:uid/:role", rm.rbac3Manager.rbac3UpdateRole())
+	rbac3Group.DELETE("/:uid/:role", rm.rbac3Manager.rbac3RevokeRole())
+	rbac3Group.PATCH("/:rid/:role", rm.rbac3Manager.rbac3UpdateAccess())
+	rbac3Group.DELETE("/:rid/:role", rm.rbac3Manager.rbac3RevokeAccess())
 }

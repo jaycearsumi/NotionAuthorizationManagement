@@ -57,3 +57,13 @@ type roleUpdateBodyModel struct {
 
 type rbac3UpdateRoleResModel struct {
 }
+
+type rbac3UpdateAccessReqModel struct {
+	ResourceID string `json:"resource_id"`
+	Role       string `json:"role"`
+	Access     string `json:"access"`
+}
+
+type accessUpdateBodyModel struct {
+	Properties *changeProperties `json:"properties"`
+}
